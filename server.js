@@ -38,7 +38,7 @@ app.post('/discord', authenticated, async function(req, res, next) {
         songId: song.songId,
         content: req.body.content
       })
-      res.send(`${response.data}`)
+      res.send(`${response.data}\n(Song search powered by Algolia)`)
     } catch (e) {
       res.send(`Sorry, cannot process your request... ${e}`)
     }
