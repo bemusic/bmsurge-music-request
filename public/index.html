@@ -137,7 +137,7 @@
               const timeMap = new Map()
               items.forEach((item) => {
                 const recorded = timeMap.get(item.requesterId)
-                const T = 900e3
+                const T = 1200e3
                 if (recorded != null && item.requestedAt < recorded + T) {
                   item.requestedAt = recorded + T
                 }
