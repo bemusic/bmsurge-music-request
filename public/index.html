@@ -24,7 +24,7 @@
         <h2>
           Song Request List
         </h2>
-        <table class="table">
+        <table class="table table-sm">
           <thead>
             <tr>
               <th>Genre</th>
@@ -40,7 +40,7 @@
               <td>{{ req.info.artist }}</td>
               <td>{{ req.info.title }}</td>
               <td>{{ req.info.event }}</td>
-              <td>{{ req.numRequesters }}</td>
+              <td>{{ req.numRequesters }}<small> {{ formatDate(req.firstRequested) }}</small></td>
             </tr>
           </tbody>
         </table>
@@ -83,17 +83,26 @@
               requests.push({
                 key: child.key,
                 info: child.child('info').val(),
-                numRequesters: Object.keys(child.child('requesters').val() || {}).length
+                numRequesters: Object.keys(child.child('requesters').val() || {}).length,
+                firstRequested: Math.min(...Object.values(child.child('requesters').val() || {})),
               })
             })
-            this.requests = requests.sort((a, b) => {
-              return b.numRequesters - a.numRequesters
-            })
+            this.requests = requests
+              .sort((a, b) => {
+                return a.firstRequested - b.firstRequested
+              })
+              .sort((a, b) => {
+                return b.numRequesters - a.numRequesters
+              })
           })
         },
         computed: {
+          
         },
         methods: {
+          formatDate(d) {
+            return new Date(d).toISOString()
+          }
         }
       })
     </script>
