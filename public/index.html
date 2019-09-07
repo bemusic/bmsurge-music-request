@@ -16,10 +16,9 @@
     <style>
       .song-requester {
         display: inline-block;
-        height: 12px;
-        width: 12px;
+        height: 0px;
+        width: 0px;
         margin-right: 2px;
-        background: #ccc;
       }
     </style>
 <!--     <link rel="stylesheet" href="https://unpkg.com/bootstrap-vue@2.0.0-rc.28/dist/bootstrap-vue.min.css"> -->
@@ -147,8 +146,11 @@
             return new Date(d).toISOString()
           },
           requesterStyle(r) {
+            const a = `hsl(${parseInt(r.substr(0, 4), 16) % 360},90%,60%)`
+            const b = `hsl(${parseInt(r.substr(4, 4), 16) % 360},90%,40%)`
             return {
-              background: `hsl(${parseInt(r.substr(0, 4), 16)},80%,40%)`
+              border: '6px solid transparent',
+              borderColor: `${a} ${b} ${b} ${a}`
             }
           },
         }
