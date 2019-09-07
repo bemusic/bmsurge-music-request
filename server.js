@@ -35,6 +35,7 @@ app.post('/discord', authenticated, async function(req, res, next) {
     try {
       const response = await axios.post(`${process.env.DJ_URL}/requests`, {
         userId: req.body.userId,
+        username: req.body.username,
         songId: song.songId,
         content: req.body.content
       })
