@@ -13,7 +13,7 @@
       integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
       crossorigin="anonymous"
     />
-    <link rel="stylesheet" href="https://unpkg.com/bootstrap-vue@2.0.0-rc.28/dist/bootstrap-vue.min.css">
+<!--     <link rel="stylesheet" href="https://unpkg.com/bootstrap-vue@2.0.0-rc.28/dist/bootstrap-vue.min.css"> -->
   </head>
   <body>
     <div id="app">
@@ -21,11 +21,16 @@
         <a class="navbar-brand" href="https://be-music.surge.sh/">Be-Music Surge</a>
       </nav>
       <main role="main" class="container-fluid">
+        <table>
+          <tbody>
+            <tr v-for="req in requests"></tr>
+          </tbody>
+        </table>
       </main>
     </div>
 
     <script src="https://unpkg.com/vue@2.6.10/dist/vue.js"></script>
-    <script src="https://unpkg.com/bootstrap-vue@2.0.0-rc.28/dist/bootstrap-vue.min.js"></script>
+<!--     <script src="https://unpkg.com/bootstrap-vue@2.0.0-rc.28/dist/bootstrap-vue.min.js"></script> -->
 
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <script src="https://www.gstatic.com/firebasejs/6.5.0/firebase-app.js"></script>
@@ -50,44 +55,23 @@
       appInstance = new Vue({
         el: '#app',
         data: {
-          report: null,
-          perPage: 20,
-          currentPage: 1,
-          sortBy: '_id',
-          sortDesc: false,
-          filter: '',
-          filterOn: ['packageFile'],
-          fields: [
-            { key: '_id', sortable: true },
-            { key: 'eventId', sortable: true },
-            { key: 'packageFile', sortable: true },
-            { key: 'status', sortable: true },
-          ]
+          requests: [],
         },
-        async mounted() {
-          try {
-            const report = await fetch('/report.json').then(r => r.json())
-            this.report = report
-          } catch (e) {
-            alert(e)
-          }
+        mounted() {
+          firebase.database().ref('requests').on('value', (s) => {
+            window.s = s
+            const requests = []
+            s.forEach(child => {
+              requests.push({
+                title: child.child()
+              })
+            })
+            this.requests = requests
+          })
         },
         computed: {
-          items() {
-            return this.report.songs
-          }
         },
         methods: {
-          statusBadge(status) {
-            return {
-              done: 'badge-success',
-              error: 'badge-danger',
-              pending: 'badge-secondary',
-            }[status]
-          },
-          songClick(song) {
-            console.log(JSON.parse(JSON.stringify(song)))
-          }
         }
       })
     </script>
