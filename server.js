@@ -1,22 +1,36 @@
-// server.js
-// where your node app starts
+if (process.env.GIT_EMAIL) {
+  require('child_process').execSync(`git config user.email ${process.env.GIT_EMAIL}`)
+}
 
-// init project
 const express = require('express');
+const basicAuth = require('express-basic-auth')
 const app = express();
+require('longjohn');
 
-// we've started you off with Express, 
-// but feel free to use whatever libs or frameworks you'd like through `package.json`.
+const authenticated = basicAuth({
+  users: { admin: process.env.ADMIN_PASSWORD },
+  challenge: true,
+  realm: 'bmsurge-music-request',
+})
 
-// http://expressjs.com/en/starter/static-files.html
-app.use(express.static('public'));
+app.use(require('body-parser').json())
+app.use(express.static('public'))
 
-// http://expressjs.com/en/starter/basic-routing.html
-app.get('/', function(request, response) {
-  response.sendFile(__dirname + '/views/index.html');
-});
+app.post('/discord', authenticated, async function(req, res, next) {
+  try {
+    res.send('meow!')
+  } catch (e) {
+    next(e)
+  }
+})
+app.put('/songlist', authenticated, async function(req, res, next) {
+  try {
+    res.send('meow!')
+  } catch (e) {
+    next(e)
+  }
+})
 
-// listen for requests :)
 const listener = app.listen(process.env.PORT, function() {
   console.log('Your app is listening on port ' + listener.address().port);
 });
