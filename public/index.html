@@ -151,7 +151,7 @@
                 return firstRequested(a) - firstRequested(b)
               })
               .sort((a, b) => {
-                return b.numRequesters - a.numRequesters
+                return b.requesters.length - a.requesters.length
               })
           })
         },
