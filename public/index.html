@@ -76,11 +76,11 @@
               <td>{{ req.info.title }}</td>
               <td>{{ req.info.event }}</td>
               <td>
-                <span v-for="r in req.requesters" class="song-requester" :style="requesterStyle(r)"></span>
+                <span v-for="r in req.requesters" class="song-requester" :style="requesterStyle(r.requesterId)"></span>
                 <!-- small> {{ formatDate(req.firstRequested) }}</small -->
               </td>
               <td align="right">
-                {{ req.numRequesters }}
+                {{ req.requesters.length }}
               </td>
             </tr>
           </tbody>
@@ -121,17 +121,34 @@
             window.s = s
             const requests = []
             s.forEach(child => {
+              const requesterKeys = Object.keys(child.child('requesters').val() || {})
+              const requesters = requesterKeys.map(k => ({
+                requesterId: k,
+                requestedAt: child.child('requesters').child(k).val()
+              }))
               requests.push({
                 key: child.key,
                 info: child.child('info').val(),
-                numRequesters: Object.keys(child.child('requesters').val() || {}).length,
-                requesters: Object.keys(child.child('requesters').val() || {}),
-                firstRequested: Math.min(...Object.values(child.child('requesters').val() || {})),
+                requesters: requesters,
               })
             })
+            if (location.search === '?test') {
+              const items = [].concat(...requests.map(r => r.requesters)).sort((a, b) => a.requestedAt - b.requestedAt)
+              const timeMap = new Map()
+              items.forEach((item) => {
+                const recorded = timeMap.get(item.requesterId)
+                const T = 900e3
+                if (recorded != null && item.requestedAt < recorded + T) {
+                  item.requestedAt = recorded + T
+                }
+                timeMap.set(item.requesterId, item.requestedAt)
+              })
+              console.log(JSON.stringify(items, null, 2))
+            }
+            const firstRequested = r => Math.min(...r.requesters.map(rr => rr.requestedAt)) || 0
             this.requests = requests
               .sort((a, b) => {
-                return a.firstRequested - b.firstRequested
+                return firstRequested(a) - firstRequested(b)
               })
               .sort((a, b) => {
                 return b.numRequesters - a.numRequesters
