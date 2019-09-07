@@ -7,6 +7,7 @@ const basicAuth = require('express-basic-auth')
 const app = express();
 const algoliasearch = require('algoliasearch')
 const algolia = algoliasearch('GDXU17NOOL', process.env.ALGOLIA_ADMIN_API_KEY)
+const axios = require('axios')
 require('longjohn')
 
 const authenticated = basicAuth({
@@ -21,11 +22,26 @@ app.use(express.static('public'))
 app.post('/discord', authenticated, async function(req, res, next) {
   try {
     const index = algolia.initIndex('songs')
-    const result = await index.search({ query: req.body.content })
+    const result = await index.search({ query: req.body.content, hitsPerPage: 1000 })
     const hits = result.hits
-    const x = 
-    console.log(result.hits)
-    res.send('meow!')
+    if (!hits.length) {
+      res.send(
+        `Did not find any song matching your query, sorry...`
+      )
+      return
+    }
+    const random = Math.floor(Math.random() * hits.length)
+    const song = hits[random]
+    try {
+      const response = await axios.post(`${process.env.DJ_URL}/requests`, {
+        userId: req.body.userId,
+        songId: song.songId,
+        content: req.body.content
+      })
+      res.send(`${response.data}`)
+    } catch (e) {
+      res.send(`Sorry, cannot process your request... ${e}`)
+    }
   } catch (e) {
     next(e)
   }
