@@ -18,7 +18,7 @@
   <body>
     <div id="app">
       <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
-        <a class="navbar-brand" href="https://be-music.surge.sh/">&rarr; Be-Music Surge</a>
+        <a class="navbar-brand" href="https://be-music.surge.sh/">&larr; Be-Music Surge</a>
       </nav>
       <main role="main" class="container-fluid">
         <h1>
@@ -46,8 +46,7 @@
             There is a limit on how many songs you can have on the play queue.
           </li>
           <li>
-            You can double down on an others’ song requests by requesting the same song as theirs.
-            Songs with more number of requests are played first.
+            Be-Music Surge will not pick a song that’s been played in the previous hour.
           </li>
         </ul>
         <h2>
@@ -69,7 +68,11 @@
               <td>{{ req.info.artist }}</td>
               <td>{{ req.info.title }}</td>
               <td>{{ req.info.event }}</td>
-              <td>{{ req.numRequesters }}<small> {{ formatDate(req.firstRequested) }}</small></td>
+              <td>
+                {{ req.numRequesters }}
+                <span v-for="r "></span>
+                <!-- small> {{ formatDate(req.firstRequested) }}</small -->
+              </td>
             </tr>
           </tbody>
         </table>
@@ -113,6 +116,7 @@
                 key: child.key,
                 info: child.child('info').val(),
                 numRequesters: Object.keys(child.child('requesters').val() || {}).length,
+                requesters: Object.keys(child.child('requesters').val() || {}),
                 firstRequested: Math.min(...Object.values(child.child('requesters').val() || {})),
               })
             })
