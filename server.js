@@ -28,6 +28,7 @@ const logAnalytics = event => {
   })
 }
 
+const poweredByAlgolia = ` (Search powered by Algolia)`
 app.post('/discord', authenticated, async function(req, res, next) {
   try {
     const index = algolia.initIndex('songs')
@@ -42,7 +43,7 @@ app.post('/discord', authenticated, async function(req, res, next) {
         event_properties: { query }
       })
       res.send(
-        `Did not find any song matching your query, sorry...`
+        `Did not find any song matching your query, sorry...` + poweredByAlgolia
       )
       return
     }
@@ -67,7 +68,7 @@ app.post('/discord', authenticated, async function(req, res, next) {
           event: song.event,
         }
       })
-      res.send(`${response.data.text}\n(Song search powered by Algolia)`)
+      res.send(`${response.data.text}` + (response.data.queued ? poweredByAlgolia : ''))
     } catch (e) {
       res.send(`Sorry, cannot process your request... ${e}`)
     }

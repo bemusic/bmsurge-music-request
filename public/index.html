@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>Be-Music Surge Request List</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-vue@2.0.0-rc.28/dist/bootstrap-vue.min.css">
+  </head>
+  <body>
+    <div id="app">
+      <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+        <a class="navbar-brand" href="https://be-music.surge.sh/">Be-Music Surge</a>
+      </nav>
+      <main role="main" class="container-fluid">
+      </main>
+    </div>
+
+    <script src="https://unpkg.com/vue@2.6.10/dist/vue.js"></script>
+    <script src="https://unpkg.com/bootstrap-vue@2.0.0-rc.28/dist/bootstrap-vue.min.js"></script>
+
+    <!-- The core Firebase JS SDK is always required and must be listed first -->
+    <script src="https://www.gstatic.com/firebasejs/6.5.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/6.5.0/firebase-database.js"></script>
+
+    <script>
+      // Your web app's Firebase configuration
+      var firebaseConfig = {
+        apiKey: "AIzaSyDUSQ9NYxkipb_s6Alze9lmFXSRxXKsXDY",
+        authDomain: "be-music-surge-frontend.firebaseapp.com",
+        databaseURL: "https://be-music-surge-frontend.firebaseio.com",
+        projectId: "be-music-surge-frontend",
+        storageBucket: "",
+        messagingSenderId: "284392105315",
+        appId: "1:284392105315:web:933567d122f91ecd0bdf56"
+      };
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+    </script>
+
+    <script>
+      appInstance = new Vue({
+        el: '#app',
+        data: {
+          report: null,
+          perPage: 20,
+          currentPage: 1,
+          sortBy: '_id',
+          sortDesc: false,
+          filter: '',
+          filterOn: ['packageFile'],
+          fields: [
+            { key: '_id', sortable: true },
+            { key: 'eventId', sortable: true },
+            { key: 'packageFile', sortable: true },
+            { key: 'status', sortable: true },
+          ]
+        },
+        async mounted() {
+          try {
+            const report = await fetch('/report.json').then(r => r.json())
+            this.report = report
+          } catch (e) {
+            alert(e)
+          }
+        },
+        computed: {
+          items() {
+            return this.report.songs
+          }
+        },
+        methods: {
+          statusBadge(status) {
+            return {
+              done: 'badge-success',
+              error: 'badge-danger',
+              pending: 'badge-secondary',
+            }[status]
+          },
+          songClick(song) {
+            console.log(JSON.parse(JSON.stringify(song)))
+          }
+        }
+      })
+    </script>
+  </body>
+</html>
