@@ -34,7 +34,7 @@ app.post('/discord', authenticated, async function(req, res, next) {
     const query = req.body.content
     const result = await index.search({ query, hitsPerPage: 1000 })
     const hits = result.hits
-    const userId = req.body.userId
+    const userId = 'discord_' + req.body.userId
     if (!hits.length) {
       logAnalytics({
         user_id: userId,
@@ -46,11 +46,11 @@ app.post('/discord', authenticated, async function(req, res, next) {
       )
       return
     }
-    const random = Math.floor(Math.random() * hits.length)
+    const random = Math.floor(Math.pow(Math.random(), 2) * hits.length)
     const song = hits[random]
     try {
       const response = await axios.post(`${process.env.DJ_URL}/requests`, {
-        userId: req.body.userId,
+        userId: userId,
         username: req.body.username,
         songId: song.songId,
         content: req.body.content
@@ -67,7 +67,7 @@ app.post('/discord', authenticated, async function(req, res, next) {
           event: song.event,
         }
       })
-      res.send(`${response.data}\n(Song search powered by Algolia)`)
+      res.send(`${response.data.text}\n(Song search powered by Algolia)`)
     } catch (e) {
       res.send(`Sorry, cannot process your request... ${e}`)
     }
