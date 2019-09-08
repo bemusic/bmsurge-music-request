@@ -31,11 +31,19 @@ const logAnalytics = event => {
 const poweredByAlgolia = ` (Search powered by Algolia)`
 app.post('/discord', authenticated, async function(req, res, next) {
   try {
+    const userId = 'discord_' + req.body.userId
+    if (req.body.content === '!login') {
+      const response = await axios.post(`${process.env.DJ_URL}/token`, {
+        userId: userId,
+        username: req.body.username,
+      })
+      res.send(`${response.data.text}` + (response.data.queued ? poweredByAlgolia : ''))
+      return
+    }
     const index = algolia.initIndex('songs')
     const query = req.body.content
     const result = await index.search({ query, hitsPerPage: 1000 })
     const hits = result.hits
-    const userId = 'discord_' + req.body.userId
     if (!hits.length) {
       logAnalytics({
         user_id: userId,
