@@ -211,7 +211,7 @@
                         <td><ais-highlight attribute="title" :hit="hit"/></td>
                         <td><ais-highlight attribute="event" :hit="hit"/></td>
                         <td>
-                          <request-button :song-id="hit.objectID" :query="currentRefinement"></request-button>
+                          <request-button :song-id="hit.objectID" :song-info="songInfo(hit)" :query="currentRefinement"></request-button>
                         </td>
                       </tr>
                     </template>
@@ -238,7 +238,8 @@
       Vue.component('request-button', {
         props: {
           songId: String,
-          query: String
+          query: String,
+          songInfo: Object,
         },
         data() {
           return { requesting: false}
@@ -256,6 +257,18 @@
               alert('Cannot request: ' + e)
             } finally {
               this.requesting = false
+              // 
+              const song = this.songInfo
+              const eventProperties = {
+                query: this.query,
+                songId: this.songId,
+                title: song.title,
+                artist: song.artist,
+                genre: song.genre,
+                event: song.event,
+                via: 'web',
+              }
+              amplitude.getInstance().logEvent('Request hit', eventProperties)
             }
           }
         }
@@ -267,6 +280,11 @@
             searchClient: algoliasearch('GDXU17NOOL', 'f73d4b83992c2073fc30b8dac3cd60eb')
           }
         },
+        methods: {
+          songInfo(hit) {
+            return hit
+          }
+        }
       })
       appInstance = new Vue({
         el: '#app',
@@ -296,19 +314,6 @@
                 requesters: requesters,
               })
             })
-            if (location.search === '?test') {
-              const items = [].concat(...requests.map(r => r.requesters)).sort((a, b) => a.requestedAt - b.requestedAt)
-              const timeMap = new Map()
-              items.forEach((item) => {
-                const recorded = timeMap.get(item.requesterId)
-                const T = 1200e3
-                if (recorded != null && item.requestedAt < recorded + T) {
-                  item.requestedAt = recorded + T
-                }
-                timeMap.set(item.requesterId, item.requestedAt)
-              })
-              console.log(JSON.stringify(items, null, 2))
-            }
             const firstRequested = r => Math.min(...r.requesters.map(rr => rr.requestedAt)) || 0
             this.requests = requests
               .sort((a, b) => {
@@ -328,6 +333,11 @@
                     this.auth.userName = r.claims.displayName
                     this.auth.userIdHash = r.claims.userIdHash
                   })
+                try {
+                  amplitude.getInstance().setUserId(user.uid)
+                } catch (e) {
+                  console.error('Cannot set amplitude user', e)
+                }
               }
             }
           })
