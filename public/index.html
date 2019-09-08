@@ -100,7 +100,7 @@
         <h2>
           Song Request List
         </h2>
-        <p>
+        <p v-if="auth.user">
           <label><input type="checkbox" v-model="settings.privateMode"> Private mode</label>
         </p>
         <table class="table table-sm">
