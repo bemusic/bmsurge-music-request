@@ -94,11 +94,29 @@
             you can also request a song from this web page.
             This will allow you to be specific on which song you want.
           </p>
-          <div>
+          <div v-if="auth.checking">
             <p>
-              First, you need to log in. Send 
+              Checking authentication state...
             </p>
           </div>
+          <template v-else-if="!auth.user">
+            <p>
+              First, you need to log in. Send "<code>!login</code>" (without quotes) as a <strong>direct message</strong> to <strong>Be-Music Surge#0450</strong> to get a login token, and paste it here.
+            </p>
+            <form @submit="login($event, $event.target.token.value)">
+              <div class="input-group">
+                <input type="text" name="token" class="form-control" placeholder="Paste login token here"  :disabled="auth.loggingIn">
+                <div class="input-group-append">
+                  <button class="btn btn-primary" :disabled="auth.loggingIn">Log in</button>
+                </div>
+              </div>
+            </form>
+          </template>
+          <template v-else>
+            <p>
+              Coming soon
+            </p>
+          </template>
         </div>
       </main>
     </div>
@@ -109,6 +127,7 @@
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <script src="https://www.gstatic.com/firebasejs/6.5.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/6.5.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/6.5.0/firebase-auth.js"></script>
 
     <script>
       // Your web app's Firebase configuration
@@ -130,6 +149,11 @@
         el: '#app',
         data: {
           requests: [],
+          auth: {
+            checking: true,
+            user: null,
+            loggingIn: false
+          }
         },
         mounted() {
           firebase.database().ref('requests').on('value', (s) => {
@@ -169,6 +193,10 @@
                 return b.requesters.length - a.requesters.length
               })
           })
+          firebase.auth().onAuthStateChanged((user) => {
+            this.auth.checking = false
+            this.auth.user = user
+          })
         },
         computed: {
           
@@ -185,6 +213,17 @@
               borderColor: `${a} ${b} ${b} ${a}`
             }
           },
+          async login(e, token) {
+            e.preventDefault()
+            this.auth.loggingIn = true
+            try {
+              await firebase.auth().signInWithCustomToken(token)
+            } catch (e) {
+              alert(`Cannot sign in: ${e}`)
+            } finally {
+              this.auth.loggingIn = false
+            }
+          }
         }
       })
     </script>
