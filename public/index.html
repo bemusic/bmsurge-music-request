@@ -89,6 +89,7 @@
           <template v-else>
             <p>
               Hello, <span class="song-requester" :style="requesterStyle(auth.userIdHash)"></span><strong>{{auth.userName}}</strong>!
+              (<a href="#" onclick="event.preventDefault();firebase.auth().signOut()">Logout</a>)
             </p>
             <search-box></search-box>
           </template>
@@ -185,12 +186,15 @@
           <ais-autocomplete>
             <div slot-scope="{ currentRefinement, indices, refine }">
               <p>
-                <input
-                  type="search"
-                  :value="currentRefinement"
-                  placeholder="Search for a song…"
-                  @input="refine($event.currentTarget.value)"
-                >
+                <div class="input-group">
+                  <input
+                    type="text"
+                    class="form-control"
+                    :value="currentRefinement"
+                    placeholder="Search for a song…"
+                    @input="refine($event.currentTarget.value)"
+                  />
+                </div>
               </p>
               <table class="table table-sm" v-if="currentRefinement">
                 <thead>

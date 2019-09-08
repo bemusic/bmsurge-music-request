@@ -38,6 +38,12 @@ app.post('/discord', authenticated, async function(req, res, next) {
         username: req.body.username,
       })
       res.send(`Paste this token in https://bmsurge-music-request.glitch.me (this token expires in 1 hour):\n\`\`\`${response.data.token}\`\`\``)
+      logAnalytics({
+        user_id: userId,
+        event_type: 'Get login token',
+        event_properties: {
+        }
+      })
       return
     }
     const index = algolia.initIndex('songs')
