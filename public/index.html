@@ -13,6 +13,8 @@
       integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
       crossorigin="anonymous"
     />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/instantsearch.css@7.3.1/themes/reset-min.css" integrity="sha256-t2ATOGCtAIZNnzER679jwcFcKYfLlw01gli6F6oszk8=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/instantsearch.css@7.3.1/themes/algolia-min.css" integrity="sha256-HB49n/BZjuqiCtQQf49OdZn63XuKFaxcIHWf0HNKte8=" crossorigin="anonymous">
     <style>
       .song-requester {
         display: inline-block;
@@ -35,7 +37,7 @@
         <p>
           You can request a song to be played on <a href="https://be-music.surge.sh/">Be-Music Surge</a> radio station via Discord!
         </p>
-        <ul>
+        <ul class="mb-5">
           <li>
             Join the <a target="_blank" href="https://discord.gg/mjRUEnX">BMS Community</a> (or <a target="_blank" href="https://discord.gg/F6vg7JN">Bemuse</a>) Discord server.
           </li>
@@ -56,6 +58,42 @@
             Be-Music Surge will not pick a song that’s been played in the previous hour.
           </li>
         </ul>
+        
+        <h2>
+          Request a specific song
+        </h2>
+        <div class="mb-5">
+          <p>
+            In addition to requesting a song from the Discord bot,
+            you can also request a song from this web page.
+            This will allow you to be specific on which song you want.
+          </p>
+          <div v-if="auth.checking">
+            <p>
+              Checking authentication state...
+            </p>
+          </div>
+          <template v-else-if="!auth.user">
+            <p>
+              First, you need to log in. Send "<code>!login</code>" (without quotes) as a <strong>direct message</strong> to <strong>Be-Music Surge#0450</strong> to get a login token, and paste it here.
+            </p>
+            <form @submit="login($event, $event.target.token.value)">
+              <div class="input-group">
+                <input type="text" name="token" class="form-control" placeholder="Paste login token here"  :disabled="auth.loggingIn">
+                <div class="input-group-append">
+                  <button class="btn btn-primary" :disabled="auth.loggingIn">Log in</button>
+                </div>
+              </div>
+            </form>
+          </template>
+          <template v-else>
+            <p>
+              Hello, <span class="song-requester" :style="requesterStyle(auth.userIdHash)"></span><strong>{{auth.userName}}</strong>!
+            </p>
+            <search-box></search-box>
+          </template>
+        </div>
+        
         <h2>
           Song Request List
         </h2>
@@ -94,7 +132,10 @@
     <!-- The core Firebase JS SDK is always required and must be listed first -->
     <script src="https://www.gstatic.com/firebasejs/6.5.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/6.5.0/firebase-database.js"></script>
-
+    <script src="https://www.gstatic.com/firebasejs/6.5.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/6.5.0/firebase-functions.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/algoliasearch@3.33.0/dist/algoliasearchLite.min.js" integrity="sha256-3Laj91VXexjTlFLgL8+vvIq27laXdRmFIcO2miulgEs=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-instantsearch@2.0.1/dist/vue-instantsearch.js" integrity="sha256-hugfQrBAG8mfgKvHCfeNrTlM8/SZ/hKStvbvcpVPpaY=" crossorigin="anonymous"></script>
     <script>
       // Your web app's Firebase configuration
       var firebaseConfig = {
@@ -109,12 +150,135 @@
       // Initialize Firebase
       firebase.initializeApp(firebaseConfig);
     </script>
+    <script type="text/javascript">
+      (function(e,t){var n=e.amplitude||{_q:[],_iq:{}};var r=t.createElement("script")
+      ;r.type="text/javascript";r.async=true
+      ;r.src="https://cdn.amplitude.com/libs/amplitude-4.5.2-min.gz.js"
+      ;r.onload=function(){if(e.amplitude.runQueuedFunctions){
+      e.amplitude.runQueuedFunctions()}else{
+      console.log("[Amplitude] Error: could not load SDK")}}
+      ;var i=t.getElementsByTagName("script")[0];i.parentNode.insertBefore(r,i)
+      ;function s(e,t){e.prototype[t]=function(){
+      this._q.push([t].concat(Array.prototype.slice.call(arguments,0)));return this}}
+      var o=function(){this._q=[];return this}
+      ;var a=["add","append","clearAll","prepend","set","setOnce","unset"]
+      ;for(var u=0;u<a.length;u++){s(o,a[u])}n.Identify=o;var c=function(){this._q=[]
+      ;return this}
+      ;var l=["setProductId","setQuantity","setPrice","setRevenueType","setEventProperties"]
+      ;for(var p=0;p<l.length;p++){s(c,l[p])}n.Revenue=c
+      ;var d=["init","logEvent","logRevenue","setUserId","setUserProperties","setOptOut",
+      "setVersionName","setDomain","setDeviceId","setGlobalUserProperties","identify",
+      "clearUserProperties","setGroup","logRevenueV2","regenerateDeviceId","logEventWithTimestamp",
+      "logEventWithGroups","setSessionId","resetSessionId"]
+      ;function v(e){function t(t){e[t]=function(){
+      e._q.push([t].concat(Array.prototype.slice.call(arguments,0)))}}
+      for(var n=0;n<d.length;n++){t(d[n])}}v(n);n.getInstance=function(e){
+      e=(!e||e.length===0?"$default_instance":e).toLowerCase()
+      ;if(!n._iq.hasOwnProperty(e)){n._iq[e]={_q:[]};v(n._iq[e])}return n._iq[e]}
+      ;e.amplitude=n})(window,document);
+
+      amplitude.getInstance().init("ff232375d381299e49079b2f81eec270");
+    </script>
+    <template id="search-box-template">
+      <div>
+        <ais-instant-search index-name="songs" :search-client="searchClient">
+          <ais-autocomplete>
+            <div slot-scope="{ currentRefinement, indices, refine }">
+              <p>
+                <input
+                  type="search"
+                  :value="currentRefinement"
+                  placeholder="Search for a song…"
+                  @input="refine($event.currentTarget.value)"
+                >
+              </p>
+              <table class="table table-sm" v-if="currentRefinement">
+                <thead>
+                  <tr>
+                    <th>Genre</th>
+                    <th>Artist</th>
+                    <th>Title</th>
+                    <th>Event</th>
+                    <th>Request</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <template v-for="index in indices">
+                    <template v-for="hit in index.hits">
+                      <tr :key="hit.objectID">
+                        <td><ais-highlight attribute="genre" :hit="hit"/></td>
+                        <td><ais-highlight attribute="artist" :hit="hit"/></td>
+                        <td><ais-highlight attribute="title" :hit="hit"/></td>
+                        <td><ais-highlight attribute="event" :hit="hit"/></td>
+                        <td>
+                          <request-button :song-id="hit.objectID" :query="currentRefinement"></request-button>
+                        </td>
+                      </tr>
+                    </template>
+                  </template>
+                </tbody>
+              </table>
+            </div>
+          </ais-autocomplete>
+        </ais-instant-search>
+      </div>
+    </template>
+    <template id="request-button-template">
+      <span>
+        <span v-if="requesting">
+          Wait…
+        </span>
+        <a href="#" @click="confirmRequest($event)" v-else>
+          Request
+        </a>
+      </span>
+    </template>
 
     <script>
+      Vue.component('request-button', {
+        props: {
+          songId: String,
+          query: String
+        },
+        data() {
+          return { requesting: false}
+        },
+        template: '#request-button-template',
+        methods: {
+          async confirmRequest(e) {
+            e.preventDefault()
+            var requestFromWeb = firebase.functions().httpsCallable('requestFromWeb');
+            this.requesting = true
+            try {
+              const result = await requestFromWeb({ songId: this.songId, query: this.query })
+              alert(result.data && result.data.text || JSON.stringify(result))
+            } catch (e) {
+              alert('Cannot request: ' + e)
+            } finally {
+              this.requesting = false
+            }
+          }
+        }
+      })
+      Vue.component('search-box', {
+        template: '#search-box-template',
+        data() {
+          return {
+            searchClient: algoliasearch('GDXU17NOOL', 'f73d4b83992c2073fc30b8dac3cd60eb')
+          }
+        },
+      })
       appInstance = new Vue({
         el: '#app',
         data: {
           requests: [],
+          auth: {
+            checking: true,
+            user: null,
+            loggingIn: false,
+            userName: '???',
+            userIdHash: '00000000',
+          }
         },
         mounted() {
           firebase.database().ref('requests').on('value', (s) => {
@@ -154,6 +318,19 @@
                 return b.requesters.length - a.requesters.length
               })
           })
+          firebase.auth().onAuthStateChanged((user) => {
+            this.auth.checking = false
+            if (this.auth.user !== user) {
+              this.auth.user = user
+              if (user) {
+                user.getIdTokenResult()
+                  .then((r) => {
+                    this.auth.userName = r.claims.displayName
+                    this.auth.userIdHash = r.claims.userIdHash
+                  })
+              }
+            }
+          })
         },
         computed: {
           
@@ -170,8 +347,21 @@
               borderColor: `${a} ${b} ${b} ${a}`
             }
           },
+          async login(e, token) {
+            e.preventDefault()
+            this.auth.loggingIn = true
+            try {
+              await firebase.auth().signInWithCustomToken(token)
+            } catch (e) {
+              alert(`Cannot sign in: ${e}`)
+            } finally {
+              this.auth.loggingIn = false
+            }
+          }
         }
       })
     </script>
   </body>
 </html>
+
+

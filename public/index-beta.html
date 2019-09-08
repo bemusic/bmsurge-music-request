@@ -183,9 +183,7 @@
                         <td><ais-highlight attribute="title" :hit="hit"/></td>
                         <td><ais-highlight attribute="event" :hit="hit"/></td>
                         <td>
-                          <a href="#" @click="confirmRequest($event, hit.objectID, currentRefinement)">
-                            Request
-                          </a>
+                          <request-button :song-id="hit.objectID" :query="currentRefinement"></request-button>
                         </td>
                       </tr>
                     </template>
@@ -197,8 +195,43 @@
         </ais-instant-search>
       </div>
     </template>
+    <template id="request-button-template">
+      <span>
+        <span v-if="requesting">
+          Wait…
+        </span>
+        <a href="#" @click="confirmRequest($event)" v-else>
+          Request
+        </a>
+      </span>
+    </template>
 
     <script>
+      Vue.component('request-button', {
+        props: {
+          songId: String,
+          query: String
+        },
+        data() {
+          return { requesting: false}
+        },
+        template: '#request-button-template',
+        methods: {
+          async confirmRequest(e) {
+            e.preventDefault()
+            var requestFromWeb = firebase.functions().httpsCallable('requestFromWeb');
+            this.requesting = true
+            try {
+              const result = await requestFromWeb({ songId: this.songId, query: this.query })
+              alert(result.data && result.data.text || JSON.stringify(result))
+            } catch (e) {
+              alert('Cannot request: ' + e)
+            } finally {
+              this.requesting = false
+            }
+          }
+        }
+      })
       Vue.component('search-box', {
         template: '#search-box-template',
         data() {
@@ -206,18 +239,6 @@
             searchClient: algoliasearch('GDXU17NOOL', 'f73d4b83992c2073fc30b8dac3cd60eb')
           }
         },
-        methods: {
-          async confirmRequest(e, objectId, query) {
-            e.preventDefault()
-            var requestFromWeb = firebase.functions().httpsCallable('requestFromWeb');
-            try {
-              const result = await requestFromWeb({ songId: objectId, query })
-              alert(result.text)
-            } catch (e) {
-              alert('Cannot request: ' + e)
-            }
-          }
-        }
       })
       appInstance = new Vue({
         el: '#app',
