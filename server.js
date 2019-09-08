@@ -80,6 +80,7 @@ app.post('/discord', authenticated, async function(req, res, next) {
           artist: song.artist,
           genre: song.genre,
           event: song.event,
+          hits: result.nbHits,
         }
       })
       res.send(`${response.data.text}` + (response.data.queued ? poweredByAlgolia : ''))
