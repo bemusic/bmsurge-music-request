@@ -37,7 +37,7 @@
         <p>
           You can request a song to be played on <a href="https://be-music.surge.sh/">Be-Music Surge</a> radio station via Discord!
         </p>
-        <ul>
+        <ul class="mb-5">
           <li>
             Join the <a target="_blank" href="https://discord.gg/mjRUEnX">BMS Community</a> (or <a target="_blank" href="https://discord.gg/F6vg7JN">Bemuse</a>) Discord server.
           </li>
@@ -62,7 +62,7 @@
         <h2>
           Request a specific song
         </h2>
-        <div style="min-height: 30em">
+        <div class="mb-5">
           <p>
             In addition to requesting a song from the Discord bot,
             you can also request a song from this web page.
@@ -133,6 +133,7 @@
     <script src="https://www.gstatic.com/firebasejs/6.5.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/6.5.0/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/6.5.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/6.5.0/firebase-functions.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/algoliasearch@3.33.0/dist/algoliasearchLite.min.js" integrity="sha256-3Laj91VXexjTlFLgL8+vvIq27laXdRmFIcO2miulgEs=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue-instantsearch@2.0.1/dist/vue-instantsearch.js" integrity="sha256-hugfQrBAG8mfgKvHCfeNrTlM8/SZ/hKStvbvcpVPpaY=" crossorigin="anonymous"></script>
     <script>
@@ -182,7 +183,7 @@
                         <td><ais-highlight attribute="title" :hit="hit"/></td>
                         <td><ais-highlight attribute="event" :hit="hit"/></td>
                         <td>
-                          <a href="#" @click="confirmRequest($event, hit.objectID)" class="btn btn-link" type="button">
+                          <a href="#" @click="confirmRequest($event, hit.objectID, currentRefinement)">
                             Request
                           </a>
                         </td>
@@ -206,8 +207,15 @@
           }
         },
         methods: {
-          async confirmRequest(e) {
+          async confirmRequest(e, objectId, query) {
             e.preventDefault()
+            var requestFromWeb = firebase.functions().httpsCallable('requestFromWeb');
+            try {
+              const result = await requestFromWeb({ songId: objectId, query })
+              alert(result.text)
+            } catch (e) {
+              alert('Cannot request: ' + e)
+            }
           }
         }
       })
