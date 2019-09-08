@@ -22,6 +22,12 @@
         width: 0px;
         margin-right: 2px;
       }
+      .debug-target {
+        visibility: hidden;
+      }
+      .debug-trigger:hover .debug-target {
+        visibility: visible;
+      }
     </style>
 <!--     <link rel="stylesheet" href="https://unpkg.com/bootstrap-vue@2.0.0-rc.28/dist/bootstrap-vue.min.css"> -->
   </head>
@@ -124,7 +130,8 @@
                 <span v-for="r in req.requesters" class="song-requester" :style="requesterStyle(r.requesterId)"></span>
                 <!-- small> {{ formatDate(req.firstRequested) }}</small -->
               </td>
-              <td align="right">
+              <td align="right" class="debug-trigger">
+                <small class="debug-target" :title="formatDate(firstRequested(req))">(T+{{formatTimeDiff(firstRequested(req))}}) </small>
                 {{ req.requesters.length }}
               </td>
             </tr>
@@ -300,6 +307,7 @@
         el: '#app',
         data: {
           requests: [],
+          currentTime: Date.now(),
           auth: {
             checking: true,
             user: null,
@@ -327,10 +335,9 @@
                 requesters: requesters,
               })
             })
-            const firstRequested = r => Math.min(...r.requesters.map(rr => rr.requestedAt)) || 0
             this.requests = requests
               .sort((a, b) => {
-                return firstRequested(a) - firstRequested(b)
+                return this.firstRequested(a) - this.firstRequested(b)
               })
               .sort((a, b) => {
                 return b.requesters.length - a.requesters.length
@@ -354,13 +361,27 @@
               }
             }
           })
+          firebase.database().ref(".info/serverTimeOffset").on('value', v => {
+            this.serverTimeOffset = v.val()
+          })
+          setInterval(() => {
+            this.currentTime = Date.now()
+          }, 60e3)
         },
         computed: {
-          
+          serverTime() {
+            return this.currentTime + this.serverTimeOffset
+          }
         },
         methods: {
+          firstRequested(r) {
+            return Math.min(...r.requesters.map(rr => rr.requestedAt)) || 0
+          },
           formatDate(d) {
             return new Date(d).toISOString()
+          },
+          formatTimeDiff(ts) {
+            return ((ts - this.serverTime) / 60e3).toFixed(2)
           },
           requesterStyle(r) {
             const a = `hsl(${parseInt(r.substr(0, 4), 16) % 360},90%,60%)`
