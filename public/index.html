@@ -43,6 +43,7 @@
           </li>
           <li>
             Send a <strong>direct message</strong> to <strong>Be-Music Surge#0450</strong> with your song request.
+            (Alternatively, you can request a song using the form below.)
           </li>
           <li>
             The Discord bot will search for a song based on your message and adds it to the play queue.
@@ -50,6 +51,7 @@
           </li>
           <li>
             Songs with more number of requests are played first.
+            If you request a song that others also requested, you will hear them sooner!
           </li>
           <li>
             There is a limit on how many songs you can have on the play queue.
@@ -98,8 +100,11 @@
         <h2>
           Song Request List
         </h2>
+        <p>
+          <label><input type="checkbox" v-model="settings.privateMode"> Private mode</label>
+        </p>
         <table class="table table-sm">
-          <thead>
+          <thead class="thead-dark">
             <tr>
               <th>Genre</th>
               <th>Artist</th>
@@ -109,7 +114,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="req in requests" :key="req.key">
+            <tr v-for="req in requests" :key="req.key" :class="{'table-info':!settings.privateMode && yours(req)}">
               <td>{{ req.info.genre }}</td>
               <td>{{ req.info.artist }}</td>
               <td>{{ req.info.title }}</td>
@@ -300,6 +305,9 @@
             loggingIn: false,
             userName: '???',
             userIdHash: '00000000',
+          },
+          settings: {
+            privateMode: false,
           }
         },
         mounted() {
@@ -371,6 +379,9 @@
             } finally {
               this.auth.loggingIn = false
             }
+          },
+          yours(request) {
+            return request.requesters.some(r => r.requesterId === this.auth.userIdHash)
           }
         }
       })
