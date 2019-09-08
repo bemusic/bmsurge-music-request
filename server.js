@@ -92,7 +92,7 @@ app.post('/discord', authenticated, async function(req, res, next) {
   }
 })
 
-app.put('/songlist', authenticated, async function(req, res, next) {
+app.patch('/songlist', authenticated, async function(req, res, next) {
   try {
     const index = algolia.initIndex('songs')
     const data = req.body.map(s => {
